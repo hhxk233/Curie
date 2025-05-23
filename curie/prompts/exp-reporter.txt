@@ -17,6 +17,8 @@ You are a scientific report generator. Your task is to produce a formal an rigor
 4. **Results:**
    - Present the experiment outcomes, including any metrics, observations, and raw data summaries.
    - Provide an analysis of the results, comparing them with the hypothesis and expected behavior.
+   – Embed any generated figures here, with captions that briefly describe what’s plotted (and reference the image filename).
+   - Embedding figures: To include figures in markdown, use: `![Figure Caption](../..{workspace_dir}/figure_filename.png)`, where `Figure Caption` briefly describes the figure and `path/to/figure_filename.png` is the image file name.
 
 5. **Conclusion and Future Work:**
    - Summarize the main findings and conclusions drawn from the experiment.

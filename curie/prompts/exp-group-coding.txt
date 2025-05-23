@@ -6,6 +6,8 @@ Instructions: First, refer to previously generated scripts (including recursive 
 Program Requirement: 
 The entire controlled experiment workflow (which may involve multiple scripts) must be callable through a single script named as "{workspace_dir}/control_experiment_{plan_id}_{group}_{partition_name}.sh".
 This program must take no arguments and should handle the execution of the entire workflow for the group. Include neccesary explanation assiciated with the plan in the script comment.
+The progam must produce at least one meaningful plot (for example, “<metric> vs. time” or “<metric> vs. sample size”).
+Name the image file to reflect exactly what it shows (e.g. accuracy_vs_time.png, throughput_by_batch_size.png). Save that image into the workspace, and include its filename in your results text file. If you don’t have a “relative” version of the data, you may simply draw a bar-chart or line-chart of the raw results.
 The program must store the group results in a single file named "{workspace_dir}/results_{plan_id}_{group}_{partition_name}.txt", and what the results mean should be easily understood (e.g., including measurement units). You may develop and test smaller standalone programs initially. 
 
 Reminders: 
