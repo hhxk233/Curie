@@ -1,6 +1,9 @@
 from nodes.base_node import BaseNode, NodeConfig
 from langgraph.graph import END
+from langchain_core.messages import SystemMessage
 from scheduler import SchedNode
+import model
+import settings
 
 class Architect(BaseNode):
 
@@ -10,7 +13,9 @@ class Architect(BaseNode):
 
     def create_transition_objs(self):
         # TODO: simplify this init message.
-        intro_message = "This is the question to answer, analyze the user's question and all mentioned or referenced files (e.g., .txt, .md, .pdf). Use read_file_contents for non-PDF files and query_pdf for PDFs to extract relevant information that informs your experimental design. Make sure to formulate it in terms of an experimental plan(s) using the 'write_new_exp_plan' tool:\n"
+        intro_message = "This is the question to answer, analyze the user's question and mentioned or referenced files (e.g., .txt, .md, .pdf). \
+            Use `read_file_contents` for non-PDF files and `query_pdf` for PDFs to extract relevant information that informs your experimental design. \
+            Make sure to formulate it in terms of an experimental plan(s) using the 'write_new_exp_plan' tool:\n"
         self.node_config.transition_objs["no_plan"] = lambda: {"messages": intro_message + self.sched_node.get_question(), "next_agent": "supervisor", "prev_agent": "supervisor"}
 
         self.node_config.transition_objs["get_user_input_first"] = lambda: {
@@ -101,3 +106,49 @@ class Architect(BaseNode):
         #     "control_work": {"messages": self.assign_worker("control"), "next_agent": "control_worker"},
         #     "experimental_work": {"messages": self.assign_worker("experimental"), "next_agent": "worker"}
         # }
+ 
+    def _create_model_response(self, system_prompt_file):     
+        def Node(state: self.State):
+            if state["remaining_steps"] <= settings.CONCLUDER_BUFFER_STEPS:
+                return {
+                    "messages": [], 
+                    "prev_agent": self.node_config.name,
+                }
+                
+            # Read from prompt file:
+            with open(system_prompt_file, "r") as file:
+                system_prompt = file.read()
+
+            system_message = SystemMessage(
+                content=system_prompt,
+            )  
+ 
+            messages = state["messages"]
+
+            # Ensure the system prompt is included at the start of the conversation
+            if not any(isinstance(msg, SystemMessage) for msg in messages):
+                messages.insert(0, system_message)
+
+            self.curie_logger.debug(f"Messages TO {self.node_config.name.upper()} {self.node_config.node_icon}: {messages}")
+            
+            response = model.query_model_safe(messages, tools=self.tools)
+
+            self.curie_logger.info(f"<><><><><> {self.node_config.node_icon} {self.node_config.name.upper()} {self.node_config.node_icon} <><><><><>")
+
+            if response.tool_calls:
+                self.curie_logger.info(f"Tool calls: {response.tool_calls[0]['name']}")
+                if 'prompt' in response.tool_calls[0]['args']:
+                    self.curie_logger.info(f"Message received: {response.tool_calls[0]['args']['prompt']}")
+                elif 'verifier_log_message' in response.tool_calls[0]['args']:
+                    self.curie_logger.info(f"Message: {response.tool_calls[0]['args']['verifier_log_message']}")
+                else:
+                    self.curie_logger.info(f"Message: {response.tool_calls[0]['args']}")
+            
+            concise_msg = response.content.split('\n\n')[0] 
+            self.curie_logger.info(f'Concise response: {concise_msg}')
+
+            self.curie_logger.debug(f"Full response from {self.node_config.name.upper()} {self.node_config.node_icon}: {response}")
+
+            return {"messages": [response], "prev_agent": self.node_config.name}
+        
+        return Node

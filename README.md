@@ -1,4 +1,5 @@
-# Curie: Automate Rigorous Scientific Experimentation
+# Curie: A Research Experimentation Agent 
+<!-- # Curie: Automate Rigorous Scientific Experimentation -->
 
 [![arXiv](https://img.shields.io/badge/arXiv-2502.16069-b31b1b.svg)](https://arxiv.org/abs/2502.16069)
 [![Slack](https://img.shields.io/badge/Slack-Join%20Community-4A154B?logo=slack)](https://join.slack.com/t/just-curieous/shared_invite/zt-313elxhhy-hpEK5r9kX9Xv1Pfxzt9CJQ)
@@ -15,10 +16,10 @@ Curie helps answer your curiosity through end-to-end experimentation automation,
 </p>
 
 **Key Features**
-- 🚀 Automated Experimentation – End-to-end workflow management: hypothesis formulation, experiment setup, experiment execution, result analysis and finding reflection.
-- 📊 Rigor Enhancement - Built-in verification modules enforce methodical procedure, reliability and interpretability.
+- 🚀 Automated Experimentation – From hypothesis formulation, experiment implementation, experiment execution, result analysis and finding reflection.
+- 📊 Rigor Enhancement - Built-in verification modules enforce methodical procedure, agent reliability and reproducibility.
 - 🔬 Broad Applicability – Supports ML research, system analysis, and scientific discovery.
-- 📖 Experimentation Benchmark - Provide 46 questions from 4 Computer Science domains, based on influential papers and open-source projects (`benchmark/experimentation_bench`).
+<!-- - 📖 Experimentation Benchmark - Provide 46 questions from 4 Computer Science domains, based on influential papers and open-source projects (`benchmark/experimentation_bench`). -->
 
 ## Table of Contents 
 - [Installation](#installation)
@@ -39,15 +40,14 @@ git clone https://github.com/Just-Curieous/Curie.git
 cd Curie
 ```
 
-3. Put your LLM API credentials under `curie/setup/env.sh`. Example: 
+3. Put your [LLM API credentials](https://github.com/BerriAI/litellm) under `curie/setup/env.sh`. Example: 
 
 ```
-export MODEL="gpt-4o" 
-export OPENAI_API_KEY="sk-xxx" 
+export MODEL="claude-3-7-sonnet-20250219" 
+export ANTHROPIC_API_KEY="your-anthropic-key"
 ```
 
-4. Build the container image. This will take a few minutes. Note: you may need to setup a virtual environment before running pip install.
-
+4. Build the container image. This will take a few minutes. 
 ```bash
 pip install -e .
 docker images -q exp-agent-image | xargs -r docker rmi -f # remove any existing conflict image
@@ -57,39 +57,47 @@ cd curie && docker build --no-cache --progress=plain -t exp-agent-image -f ExpDo
 ## Quick Start
 Use the following command to input your research question or problem statement: `python3 -m curie.main -q "<Your research question>"`.
 
-### **Example 1**: Understanding Sorting Algorithm Efficiency
+### **Example 1**: [You Have a Single Question Needed to be Verified](./docs/quick_start.md).
+
+Q: I want to understand the Sorting Algorithm Efficiency.
+
+A: Simply input your question to Curie:
 
 ```bash
 python3 -m curie.main \
   -q "How does the choice of sorting algorithm impact runtime performance across different \
-  input distributions (random, nearly sorted, reverse sorted)?" --report
+  input distributions (random, nearly sorted, reverse sorted)?" 
 ```
-
 - **Estimated runtime**: ~5 minutes
-- **Sample log file**: Available [here](./docs/example_logs/research_sorting_efficiency_20250310015235.log)
-- **Experiment report**: Available [here](./docs/example_logs/research_sorting_efficiency_20250310015235.md).
-- **Log monitoring**:
+- **Auto-generated Experiment report**: Available [here](./docs/example_logs/research_sorting_efficiency_20250310015235.md).
+- **Curie log**: Available [here](./docs/example_logs/research_sorting_efficiency_20250310015235.log)
+- **Logs and Reproducibilty**:
   - Real-time logs are streamed to the console.
-  - Logs are also stored in:
-    - `logs/research_question_<ID>.log` 
-    - `logs/research_question_<ID>_verbose.log`
-  - Experiment report details:
-    - Stored in: `logs/research_question_<ID>.md`
-    - Will only be produced when the `--report` flag is used.
-- **Reproducibility**: The full experimentation process is saved in `workspace/research_<ID>/`.
+  - Experiment report are stored in `logs/research_<ID>.md`  
+  - The full experimentation process (script to reproduce results, generated code and experiment results) is saved in `workspace/research_<ID>/`.
 
-### **Example 2**: How does the choice of activation function (e.g., ReLU, sigmoid, tanh) impact the model training convergence rate?
+### Example 2: You Have a Dataset and Want to Gain Insight from It
+
+Q: I have a dataset and some starter code,and I want to train/deloy ML models to achieve my goals
+
+A: Simply provide your dataset, codebase and question to Curie:
 
 ```bash
-python3 -m curie.main -f benchmark/junior_ml_engineer_bench/q1_activation_func.txt --report
-```
+python3 -m curie.main -q '[Example]: How to improve my prediction accuracy on my datastet. \
+                      Checkout <paper.pdf> for the background information.' \
+                      --task_config curie/configs/mle.json \
+                      --dataset_dir <abs_path_to_your_dataset> \
+                      --workspace_name <abs_path_to_your_codebase [optional]> 
+```  
+- Check out some [examples](./benchmark/mle_bench/dog-breed-identification/) from [MLE-Bench](https://github.com/openai/mle-bench).
+  - [Predict the dog breed](./benchmark/mle_bench/dog-breed-identification/)
+  - [Identify melanoma in images of skin lesions](./benchmark/mle_bench/siim-isic-melanoma-classification/)
+  - [Predict the severity level of diabetic retinopathy based on retinal images](./benchmark/mle_bench/aptos2019-blindness-detection/)
 
-- Detailed question: `q1_diffusion_step.txt`
-- **Sample log fil**e: Available [here](./docs/example_logs/mle_activation_func_20250326.log)
-- **Sample report file**: Available [here](./docs/example_logs/mle_activation_func_20250326.md)
 
 
-Check out more [computational questions](./docs/quick_start.md), as well as [Machine Learning questions](/benchmark/junior_ml_engineer_bench/) and [Machine Learning Systems questions](/benchmark/junior_mlsys_engineer_bench/).
+Check out more **Machine Learning Use Cases** [here](https://github.com/Just-Curieous/Curie-Use-Cases). 
+
 
 
 ## Tutorial
@@ -112,14 +120,6 @@ Curie is designed for scientific discovery across multiple domains:
   <img src="./docs/static/img/case_study.png" width="1000px"/>
 </p>
 
-
-## Customize Your Experimentation Agents
-
-Config `curie/configs/base_config.json` to adapt to your own tasks:  
-- Add your domain-specific instructions by customizing `supervisor_system_prompt_filename` for the supervisor, `control_worker_system_prompt_filename` for the experimentation worker, and so on.
-- Human interruption in the experiment design phase can be activated by setting the `is_user_interrupt_allowed` key to `true`.
-- Configure timeouts and maximum number of steps (global, and coding agent specific).
-
 ## Community and Support
 
 For any issues or feature requests, please open an issue on our [GitHub Issues](https://github.com/Just-Curieous/curie/issues) page.
@@ -127,3 +127,7 @@ For any issues or feature requests, please open an issue on our [GitHub Issues](
 ## License
 
 Curie is released under the Apache 2.0 License. See `LICENSE` for more details.
+
+## Contact Us
+
+Have questions or need assistance with Curie? We're here to help - [schedule a meeting with our team](https://calendly.com/amberljc/30min)
